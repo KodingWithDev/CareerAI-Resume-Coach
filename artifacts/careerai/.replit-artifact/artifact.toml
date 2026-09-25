@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CareerAI"
+description = "An AI-powered resume and interview coaching prototype for college students, with resume-building, resume review, editing, and mock interview flows."
+version = "1.0.0"
+id = "artifacts/careerai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21588
+
+[services.development]
+run = "pnpm --filter @workspace/careerai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/careerai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/careerai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21588"
+BASE_PATH = "/"

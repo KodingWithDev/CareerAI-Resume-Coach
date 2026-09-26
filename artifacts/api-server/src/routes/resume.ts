@@ -38,6 +38,27 @@ function parseGeneratedResume(rawResponse: string) {
   }
 }
 
+function getSafeUpstreamMessage(
+  error: unknown,
+  profile: Record<string, string>,
+) {
+  if (!(error instanceof Error) || !error.message) {
+    return undefined;
+  }
+
+  const valuesToRedact = [
+    process.env.GEMINI_API_KEY,
+    ...Object.values(profile),
+  ].filter((value): value is string => Boolean(value));
+
+  return valuesToRedact
+    .reduce(
+      (message, value) => message.replaceAll(value, "[redacted]"),
+      error.message,
+    )
+    .slice(0, 500);
+}
+
 router.post("/resume/generate", async (req, res): Promise<void> => {
   const parsed = GenerateResumeBody.safeParse(req.body);
 
@@ -86,6 +107,7 @@ router.post("/resume/generate", async (req, res): Promise<void> => {
           typeof upstreamError.code === "string"
             ? upstreamError.code
             : undefined,
+        upstreamMessage: getSafeUpstreamMessage(error, profile),
       },
       "Resume generation failed",
     );

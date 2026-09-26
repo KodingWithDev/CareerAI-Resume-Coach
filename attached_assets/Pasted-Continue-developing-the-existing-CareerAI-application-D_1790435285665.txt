@@ -1,0 +1,53 @@
+Continue developing the existing CareerAI application. Do NOT rebuild the app and do NOT remove or replace any existing features.
+
+The "Build my resume" form currently shows this error after submission:
+
+"We could not generate your resume right now. Please try again."
+
+I need you to debug the existing resume generation flow end-to-end before adding any new features.
+
+Expected flow:
+User fills the Build Resume form
+→ form data is sent to the backend
+→ Gemini generates a structured resume JSON
+→ structured resume is returned to the frontend
+→ resume preview is displayed
+→ PDF generation can happen afterward.
+
+Tasks:
+
+1. Inspect the existing Build Resume frontend code and backend API/route responsible for generating the resume.
+
+2. Inspect server logs and identify the ACTUAL error causing the request to fail.
+
+3. Check whether the Gemini API key is being read correctly from the Replit Secret:
+   GEMINI_API_KEY
+
+4. Check the Gemini API call and make sure it uses the currently installed Google Gemini SDK correctly.
+
+5. Check that the request payload sent from the frontend matches the backend schema.
+
+6. Check that the Gemini response is parsed safely into the structured resume JSON expected by the application.
+
+7. Check for missing dependencies, incorrect imports, incorrect API routes, environment-variable errors, JSON parsing errors, or server-side exceptions.
+
+8. Fix only the actual problems you find. Do not rewrite working parts of the application.
+
+9. Keep the existing Build Resume UI and form exactly as it is unless a small change is required to fix the error.
+
+10. Add useful server-side error logging so that future resume-generation failures show the real cause in the development console instead of only returning a generic error.
+
+11. Test the complete flow using the existing form data.
+
+12. Confirm that a successful request produces structured resume JSON and displays the resume preview.
+
+IMPORTANT:
+Do NOT implement PDF generation in this step.
+Do NOT create a separate app.
+Do NOT remove or modify Check Resume, Edit Resume, Interview, or other existing CareerAI features.
+
+After fixing it, tell me:
+- what the actual error was
+- which files you changed
+- how you fixed it
+- whether Build Resume now successfully generates the resume preview.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
-import { useGenerateResume, type ResumeDocument } from '@workspace/api-client-react';
+import { useDownloadResumePdf, useGenerateResume, type ResumeDocument } from '@workspace/api-client-react';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, BookOpen, BriefcaseBusiness,
   Check, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert,
@@ -133,6 +133,33 @@ function ResumePreview({ profile, resume, onEdit, onRegenerate, isRegenerating }
   isRegenerating: boolean;
 }) {
   const contact = [profile.email, profile.phone, profile.location].filter(Boolean).join('  ·  ');
+  const downloadPdf = useDownloadResumePdf();
+  const handleDownload = async () => {
+    try {
+      const pdf = await downloadPdf.mutateAsync({
+        data: {
+          profile: {
+            fullName: profile.fullName,
+            email: profile.email,
+            phone: profile.phone,
+            location: profile.location,
+            targetRole: profile.targetRole,
+          },
+          resume,
+        },
+      });
+      const url = URL.createObjectURL(pdf);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${profile.fullName.trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'resume'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      window.alert('We could not create the PDF right now. Please try again.');
+    }
+  };
   return <section id="resume-preview" className="resume-preview-shell mt-10" data-testid="resume-preview">
     <div className="resume-preview-heading">
       <div>
@@ -142,7 +169,7 @@ function ResumePreview({ profile, resume, onEdit, onRegenerate, isRegenerating }
       <div className="resume-actions flex flex-wrap items-center gap-2">
         <button onClick={onEdit} className="inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] transition-colors hover:border-[hsl(var(--primary)/.4)]" data-testid="button-edit-resume"><PencilLine size={14} /> Edit</button>
         <button onClick={onRegenerate} disabled={isRegenerating} className="inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] transition-colors hover:border-[hsl(var(--primary)/.4)] disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-regenerate-resume">{isRegenerating ? <LoaderCircle size={14} className="animate-spin" /> : <RefreshCw size={14} />} Regenerate</button>
-        <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5" data-testid="button-download-resume"><FileDown size={14} /> Download PDF</button>
+        <button onClick={handleDownload} disabled={downloadPdf.isPending} className="inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-download-resume">{downloadPdf.isPending ? <LoaderCircle size={14} className="animate-spin" /> : <FileDown size={14} />} {downloadPdf.isPending ? 'Creating PDF' : 'Download PDF'}</button>
       </div>
     </div>
     <div className="resume-print-card mt-5 rounded-2xl border border-[hsl(var(--border))] bg-white p-7 text-slate-900 shadow-[var(--shadow-soft)] sm:p-12" data-testid="resume-document">
@@ -159,7 +186,7 @@ function ResumePreview({ profile, resume, onEdit, onRegenerate, isRegenerating }
       <ResumeSection title="Certifications" items={resume.certifications} />
       <ResumeSection title="Achievements" items={resume.achievements} />
     </div>
-    <p className="resume-edit-note mt-3 text-center text-[11px] text-[hsl(var(--muted-foreground))]">Use Edit to update your story, or choose Download PDF to print this resume.</p>
+     <p className="resume-edit-note mt-3 text-center text-[11px] text-[hsl(var(--muted-foreground))]">Use Edit to update your story, or download a clean one-page PDF.</p>
   </section>;
 }
 

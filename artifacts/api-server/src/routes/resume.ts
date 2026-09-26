@@ -2,11 +2,13 @@ import { Router, type IRouter } from "express";
 import {
   GenerateResumeBody,
   GenerateResumeResponse,
+  DownloadResumePdfBody,
 } from "@workspace/api-zod";
 import {
   generateResumeWithGemini,
   GeminiConfigurationError,
 } from "../services/gemini.js";
+import { generateResumePdf } from "../services/resumeGenerator.js";
 
 const router: IRouter = Router();
 
@@ -97,6 +99,59 @@ router.post("/resume/generate", async (req, res): Promise<void> => {
 
     res.status(502).json({
       error: "Resume generation failed. Please try again.",
+    });
+  }
+});
+
+router.post("/resume/pdf", (req, res): void => {
+  const parsed = DownloadResumePdfBody.safeParse(req.body);
+
+  if (!parsed.success) {
+    req.log.warn(
+      {
+        issues: parsed.error.issues.map(({ code, path }) => ({ code, path })),
+      },
+      "Invalid resume PDF request",
+    );
+    res.status(400).json({ error: "Resume information is invalid." });
+    return;
+  }
+
+  const fullName = parsed.data.profile.fullName.trim();
+  if (!fullName) {
+    res.status(400).json({ error: "A name is required to create the PDF." });
+    return;
+  }
+
+  try {
+    const pdf = generateResumePdf({
+      profile: Object.fromEntries(
+        Object.entries(parsed.data.profile).map(([key, value]) => [
+          key,
+          value.trim(),
+        ]),
+      ),
+      resume: parsed.data.resume,
+    });
+    const safeName =
+      fullName.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") ||
+      "resume";
+
+    res
+      .status(200)
+      .type("application/pdf")
+      .setHeader("Content-Disposition", `attachment; filename="${safeName}.pdf"`)
+      .setHeader("Content-Length", pdf.length)
+      .send(pdf);
+  } catch (error) {
+    req.log.error(
+      {
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      },
+      "Resume PDF generation failed",
+    );
+    res.status(502).json({
+      error: "Resume PDF generation failed. Please try again.",
     });
   }
 });

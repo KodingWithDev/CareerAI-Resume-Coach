@@ -11,3 +11,5 @@ export * from './aiTestResponse';
 export * from './healthStatus';
 export * from './resumeDocument';
 export * from './resumeGenerateInput';
+export * from './resumePdfInput';
+export * from './resumePdfInputProfile';

@@ -94,3 +94,41 @@ export const GenerateResumeResponse = zod.object({
 })
 
 
+/**
+ * Creates a one-page ATS-friendly PDF from a structured resume
+ * @summary Download a generated resume as a PDF
+ */
+export const downloadResumePdfBodyProfileFullNameMax = 200;
+
+export const downloadResumePdfBodyProfileEmailMax = 320;
+
+export const downloadResumePdfBodyProfilePhoneMax = 80;
+
+export const downloadResumePdfBodyProfileLocationMax = 200;
+
+export const downloadResumePdfBodyProfileTargetRoleMax = 200;
+
+
+
+export const DownloadResumePdfBody = zod.object({
+  "profile": zod.object({
+  "fullName": zod.string().max(downloadResumePdfBodyProfileFullNameMax),
+  "email": zod.string().max(downloadResumePdfBodyProfileEmailMax),
+  "phone": zod.string().max(downloadResumePdfBodyProfilePhoneMax),
+  "location": zod.string().max(downloadResumePdfBodyProfileLocationMax),
+  "targetRole": zod.string().max(downloadResumePdfBodyProfileTargetRoleMax)
+}),
+  "resume": zod.object({
+  "summary": zod.string(),
+  "education": zod.array(zod.string()),
+  "skills": zod.array(zod.string()),
+  "projects": zod.array(zod.string()),
+  "experience": zod.array(zod.string()),
+  "certifications": zod.array(zod.string()),
+  "achievements": zod.array(zod.string())
+})
+})
+
+export const DownloadResumePdfResponse = zod.unknown()
+
+

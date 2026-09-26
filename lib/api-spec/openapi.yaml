@@ -82,6 +82,30 @@ paths:
           description: Gemini request failed
         "503":
           description: Gemini is not configured
+  /resume/pdf:
+    post:
+      operationId: downloadResumePdf
+      tags: [resume]
+      summary: Download a generated resume as a PDF
+      description: Creates a one-page ATS-friendly PDF from a structured resume
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumePdfInput"
+      responses:
+        "200":
+          description: Resume PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid resume information
+        "502":
+          description: PDF generation failed
 components:
   schemas:
     HealthStatus:
@@ -206,4 +230,38 @@ components:
         - experience
         - certifications
         - achievements
+    ResumePdfInput:
+      type: object
+      additionalProperties: false
+      properties:
+        profile:
+          type: object
+          additionalProperties: false
+          properties:
+            fullName:
+              type: string
+              maxLength: 200
+            email:
+              type: string
+              maxLength: 320
+            phone:
+              type: string
+              maxLength: 80
+            location:
+              type: string
+              maxLength: 200
+            targetRole:
+              type: string
+              maxLength: 200
+          required:
+            - fullName
+            - email
+            - phone
+            - location
+            - targetRole
+        resume:
+          $ref: "#/components/schemas/ResumeDocument"
+      required:
+        - profile
+        - resume
 

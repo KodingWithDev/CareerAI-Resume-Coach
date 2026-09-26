@@ -61,3 +61,21 @@ export interface ResumeDocument {
   achievements: string[];
 }
 
+export type ResumePdfInputProfile = {
+  /** @maxLength 200 */
+  fullName: string;
+  /** @maxLength 320 */
+  email: string;
+  /** @maxLength 80 */
+  phone: string;
+  /** @maxLength 200 */
+  location: string;
+  /** @maxLength 200 */
+  targetRole: string;
+};
+
+export interface ResumePdfInput {
+  profile: ResumePdfInputProfile;
+  resume: ResumeDocument;
+}
+

@@ -1,0 +1,1 @@
+- [Gemini model availability](gemini-model-availability.md) — verify direct-key model access live; catalogs and API-key availability can diverge.

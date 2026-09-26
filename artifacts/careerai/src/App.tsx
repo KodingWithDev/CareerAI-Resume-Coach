@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { useGenerateResume, type ResumeDocument } from '@workspace/api-client-react';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, BookOpen, BriefcaseBusiness,
   Check, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert,
-  ClipboardCheck, FileText, GraduationCap, Hammer, HeartHandshake,
+  ClipboardCheck, FileText, FileDown, GraduationCap, Hammer, HeartHandshake,
   Home as HomeIcon, Lightbulb, ListChecks, LockKeyhole, Menu, MessageCircle,
-  PencilLine, Rocket, ScanSearch, ShieldCheck, Sparkles, Target,
+  LoaderCircle, PencilLine, RefreshCw, Rocket, ScanSearch, ShieldCheck, Sparkles, Target,
   UploadCloud, UserRound, WandSparkles, X,
 } from 'lucide-react';
 
@@ -116,6 +117,52 @@ function ActionCard({ href, number, icon, title, description, accent }: { href: 
   return <Link href={href} className="group relative min-h-[205px] overflow-hidden rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--primary)/.35)] hover:shadow-[var(--shadow-soft)]" data-testid={`card-action-${title.toLowerCase().replaceAll(' ', '-')}`}><span className="absolute right-5 top-5 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">{number}</span><span className={`mb-12 grid h-11 w-11 place-items-center rounded-2xl ${colors[accent]}`}>{icon}</span><h2 className="font-display text-xl font-bold tracking-[-.04em] text-[hsl(var(--secondary))]">{title}<ArrowUpRight size={17} className="ml-2 inline-block transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></h2><p className="mt-2 max-w-[250px] text-[13px] leading-relaxed text-[hsl(var(--muted-foreground))]">{description}</p></Link>;
 }
 
+function ResumeSection({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
+  return <section className="resume-section" data-testid={`resume-section-${title.toLowerCase()}`}>
+    <h3 className="resume-section-title">{title}</h3>
+    <div className="resume-section-content">{items.map((item, index) => <p key={`${title}-${index}`} className="resume-entry">{item}</p>)}</div>
+  </section>;
+}
+
+function ResumePreview({ profile, resume, onEdit, onRegenerate, isRegenerating }: {
+  profile: Profile;
+  resume: ResumeDocument;
+  onEdit: () => void;
+  onRegenerate: () => void;
+  isRegenerating: boolean;
+}) {
+  const contact = [profile.email, profile.phone, profile.location].filter(Boolean).join('  ·  ');
+  return <section id="resume-preview" className="resume-preview-shell mt-10" data-testid="resume-preview">
+    <div className="resume-preview-heading">
+      <div>
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-[hsl(var(--primary))]">Your generated resume</p>
+        <h2 className="mt-2 font-display text-2xl font-bold tracking-[-.045em] text-[hsl(var(--secondary))]">Ready for your next move.</h2>
+      </div>
+      <div className="resume-actions flex flex-wrap items-center gap-2">
+        <button onClick={onEdit} className="inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] transition-colors hover:border-[hsl(var(--primary)/.4)]" data-testid="button-edit-resume"><PencilLine size={14} /> Edit</button>
+        <button onClick={onRegenerate} disabled={isRegenerating} className="inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] transition-colors hover:border-[hsl(var(--primary)/.4)] disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-regenerate-resume">{isRegenerating ? <LoaderCircle size={14} className="animate-spin" /> : <RefreshCw size={14} />} Regenerate</button>
+        <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5" data-testid="button-download-resume"><FileDown size={14} /> Download PDF</button>
+      </div>
+    </div>
+    <div className="resume-print-card mt-5 rounded-2xl border border-[hsl(var(--border))] bg-white p-7 text-slate-900 shadow-[var(--shadow-soft)] sm:p-12" data-testid="resume-document">
+      <header className="border-b-2 border-slate-900 pb-5 text-center">
+        <h1 className="font-display text-3xl font-bold tracking-[-.045em]">{profile.fullName || 'Your Name'}</h1>
+        <p className="mt-2 text-xs text-slate-600">{contact || 'Add your contact details in the questionnaire'}</p>
+        {profile.targetRole && <p className="mt-3 text-[11px] font-semibold uppercase tracking-[.16em] text-teal-700">{profile.targetRole}</p>}
+      </header>
+      {resume.summary && <section className="resume-section mt-6" data-testid="resume-section-summary"><h3 className="resume-section-title">Professional Summary</h3><p className="resume-summary">{resume.summary}</p></section>}
+      <ResumeSection title="Experience" items={resume.experience} />
+      <ResumeSection title="Projects" items={resume.projects} />
+      <ResumeSection title="Education" items={resume.education} />
+      <ResumeSection title="Skills" items={resume.skills} />
+      <ResumeSection title="Certifications" items={resume.certifications} />
+      <ResumeSection title="Achievements" items={resume.achievements} />
+    </div>
+    <p className="resume-edit-note mt-3 text-center text-[11px] text-[hsl(var(--muted-foreground))]">Use Edit to update your story, or choose Download PDF to print this resume.</p>
+  </section>;
+}
+
 const steps = [
   { label: 'Basics', icon: UserRound, fields: ['fullName', 'email', 'phone', 'location'] },
   { label: 'Education', icon: GraduationCap, fields: ['school', 'degree', 'graduation'] },
@@ -126,6 +173,9 @@ const steps = [
 function Build({ profile, setProfile }: { profile: Profile; setProfile: React.Dispatch<React.SetStateAction<Profile>> }) {
   const [step, setStep] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [generatedResume, setGeneratedResume] = useState<ResumeDocument | null>(null);
+  const [generationError, setGenerationError] = useState('');
+  const generateResume = useGenerateResume();
   const current = steps[step];
   const fieldMeta: Record<string, { label: string; placeholder: string; type?: string; help?: string }> = {
     fullName: { label: 'Full name', placeholder: 'e.g. Maya Thompson' },
@@ -144,20 +194,42 @@ function Build({ profile, setProfile }: { profile: Profile; setProfile: React.Di
   };
   const isLong = ['skills', 'projects', 'experience', 'achievements'].some((x) => current.fields.includes(x));
   const update = (key: string, value: string) => setProfile((p) => ({ ...p, [key]: value }));
-  const next = () => { if (step < steps.length - 1) setStep((s) => s + 1); else setSaved(true); };
+  const generate = async () => {
+    setGenerationError('');
+    try {
+      const response = await generateResume.mutateAsync({ data: profile });
+      setGeneratedResume(response);
+      setSaved(true);
+      window.setTimeout(() => document.getElementById('resume-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+    } catch {
+      setGenerationError('We could not generate your resume right now. Please try again.');
+    }
+  };
+  const next = () => { if (step < steps.length - 1) setStep((s) => s + 1); else void generate(); };
+  const edit = () => {
+    setGeneratedResume(null);
+    setSaved(false);
+    setGenerationError('');
+    setStep(0);
+    window.setTimeout(() => document.getElementById('questionnaire')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+  };
+  const canGenerate = Boolean(profile.fullName.trim() && profile.email.trim() && profile.targetRole.trim());
   return <div>
     <PageIntro eyebrow="Build your story" title="A resume that sounds like you." description="Start with the raw material. We’ll give your experience the structure it deserves." >
       <div className="hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-right sm:block"><p className="font-mono text-[10px] uppercase tracking-[.15em] text-[hsl(var(--muted-foreground))]">Saved locally</p><p className="mt-1 text-sm font-bold text-[hsl(var(--primary))]"><Check size={14} className="mr-1 inline" /> Your progress is safe</p></div>
     </PageIntro>
-    <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+     <div id="questionnaire" className="grid gap-8 lg:grid-cols-[260px_1fr]">
       <div className="relative"><div className="flex gap-2 overflow-x-auto pb-3 lg:block lg:space-y-2 lg:pb-0">{steps.map((item, i) => { const Icon = item.icon; const active = i === step; const complete = i < step || saved; return <button key={item.label} onClick={() => setStep(i)} className={`group flex min-w-[150px] items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors lg:w-full ${active ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted)/.6)]'}`} data-testid={`button-step-${item.label.toLowerCase().replaceAll(' ', '-')}`}><span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ${active ? 'bg-[hsl(var(--accent))] text-[hsl(var(--foreground))]' : complete ? 'bg-[hsl(var(--primary)/.13)] text-[hsl(var(--primary))]' : 'bg-[hsl(var(--muted))]'}`}>{complete && !active ? <Check size={15} /> : <Icon size={15} />}</span><span><span className="block text-xs font-bold">{item.label}</span><span className={`block font-mono text-[9px] uppercase tracking-wide ${active ? 'text-[hsl(var(--secondary-foreground)/.55)]' : 'text-[hsl(var(--muted-foreground)/.7)]'}`}>{i + 1} of {steps.length}</span></span></button>; })}</div><div className="mt-8 hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 lg:block"><p className="font-display text-xs font-bold text-[hsl(var(--secondary))]">Not sure what counts?</p><p className="mt-2 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">If it took effort, taught you something, or helped someone else, it belongs in your story.</p><div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-[hsl(var(--primary))]"><BookOpen size={13} /> Keep going</div></div></div>
       <div className="rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-card)] sm:p-8">
         <div className="mb-8 flex items-start justify-between border-b border-[hsl(var(--border))] pb-6"><div><p className="font-mono text-[10px] uppercase tracking-[.16em] text-[hsl(var(--primary))]">Step {step + 1} / {steps.length}</p><h2 className="mt-2 font-display text-2xl font-bold tracking-[-.045em] text-[hsl(var(--secondary))]">{current.label === 'Basics' ? 'Let’s start with you.' : current.label === 'Education' ? 'Where have you been learning?' : current.label === 'Skills & work' ? 'What have you made happen?' : 'Give them a reason to remember you.'}</h2></div><span className="rounded-full bg-[hsl(var(--accent)/.16)] px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[hsl(var(--accent-foreground))]">Local only</span></div>
         <div className={`grid gap-5 ${isLong ? '' : 'sm:grid-cols-2'}`}>{current.fields.map((key) => { const meta = fieldMeta[key]; return <label key={key} className={isLong ? 'block' : 'block'} data-testid={`field-${key}`}><span className="mb-2 block text-[12px] font-bold text-[hsl(var(--secondary))]">{meta.label}{['fullName', 'email', 'targetRole'].includes(key) && <span className="ml-1 text-[hsl(var(--accent))]">*</span>}</span>{isLong ? <textarea value={profile[key as keyof Profile]} onChange={(e) => update(key, e.target.value)} placeholder={meta.placeholder} rows={key === 'experience' || key === 'projects' ? 5 : 3} className="min-h-[92px] w-full resize-y rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.62)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid={`textarea-${key}`} /> : <input type={meta.type ?? 'text'} value={profile[key as keyof Profile]} onChange={(e) => update(key, e.target.value)} placeholder={meta.placeholder} className="h-12 w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.62)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid={`input-${key}`} />}{meta.help && <span className="mt-2 block text-[11px] leading-relaxed text-[hsl(var(--muted-foreground))]">{meta.help}</span>}</label>; })}</div>
-        <div className="mt-9 flex items-center justify-between border-t border-[hsl(var(--border))] pt-6"><button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0} className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-[hsl(var(--muted-foreground))] transition-colors hover:bg-[hsl(var(--muted))] disabled:cursor-not-allowed disabled:opacity-35" data-testid="button-previous-step"><ChevronLeft size={16} /> Back</button><button onClick={next} className="inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5" data-testid="button-next-step">{step === steps.length - 1 ? 'Save my story' : 'Continue'} <ChevronRight size={16} /></button></div>
-        {saved && <div className="mt-5 flex items-center gap-2 rounded-xl bg-[hsl(var(--primary)/.1)] px-4 py-3 text-xs font-semibold text-[hsl(var(--primary))]" data-testid="status-profile-saved"><CheckCircle2 size={16} /> Your story is saved locally. You can keep refining it anytime.</div>}
+         <div className="mt-9 flex items-center justify-between border-t border-[hsl(var(--border))] pt-6"><button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0 || generateResume.isPending} className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-[hsl(var(--muted-foreground))] transition-colors hover:bg-[hsl(var(--muted))] disabled:cursor-not-allowed disabled:opacity-35" data-testid="button-previous-step"><ChevronLeft size={16} /> Back</button><button onClick={next} disabled={generateResume.isPending || (step === steps.length - 1 && !canGenerate)} className="inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-next-step">{generateResume.isPending ? <><LoaderCircle size={16} className="animate-spin" /> Building your resume</> : <>{step === steps.length - 1 ? 'Build my resume' : 'Continue'} <ChevronRight size={16} /></>}</button></div>
+         {step === steps.length - 1 && !canGenerate && <p className="mt-3 text-right text-[11px] text-[hsl(var(--muted-foreground))]">Add your name, email, and target role to generate your resume.</p>}
+         {generationError && <div className="mt-5 flex items-center gap-2 rounded-xl bg-[hsl(var(--destructive)/.1)] px-4 py-3 text-xs font-semibold text-[hsl(var(--destructive))]" data-testid="status-generation-error"><CircleAlert size={16} /> {generationError}</div>}
+         {saved && !generationError && !generatedResume && <div className="mt-5 flex items-center gap-2 rounded-xl bg-[hsl(var(--primary)/.1)] px-4 py-3 text-xs font-semibold text-[hsl(var(--primary))]" data-testid="status-profile-saved"><CheckCircle2 size={16} /> Your story is saved locally. You can keep refining it anytime.</div>}
       </div>
     </div>
+     {generatedResume && <ResumePreview profile={profile} resume={generatedResume} onEdit={edit} onRegenerate={generate} isRegenerating={generateResume.isPending} />}
   </div>;
 }
 

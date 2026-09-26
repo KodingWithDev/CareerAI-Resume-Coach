@@ -124,3 +124,98 @@
 
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-9px) rotate(2deg); } }
+
+.resume-preview-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.resume-print-card {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.resume-section {
+  margin-top: 1.5rem;
+}
+
+.resume-section-title {
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: .35rem;
+  color: #0f766e;
+  font-family: var(--app-font-sans);
+  font-size: .69rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.resume-section-content {
+  display: grid;
+  gap: .55rem;
+  margin-top: .65rem;
+}
+
+.resume-entry,
+.resume-summary {
+  color: #334155;
+  font-size: .82rem;
+  line-height: 1.6;
+}
+
+.resume-entry {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.resume-entry::before {
+  position: absolute;
+  left: .15rem;
+  top: .65rem;
+  width: .28rem;
+  height: .28rem;
+  border-radius: 999px;
+  background: #0f766e;
+  content: '';
+}
+
+@media (max-width: 640px) {
+  .resume-preview-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .resume-print-card,
+  .resume-print-card * {
+    visibility: visible;
+  }
+
+  .resume-print-card {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border: 0 !important;
+    border-radius: 0;
+    box-shadow: none !important;
+  }
+
+  .resume-actions,
+  .resume-edit-note {
+    display: none !important;
+  }
+}

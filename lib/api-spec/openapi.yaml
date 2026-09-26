@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: ai
+    description: AI-powered operations
+  - name: resume
+    description: Resume generation operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,60 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /ai/test:
+    post:
+      operationId: testGeminiAi
+      tags: [ai]
+      summary: Test Gemini connectivity
+      description: Sends a prompt to Gemini through the server-side API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiTestInput"
+      responses:
+        "200":
+          description: Gemini response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiTestResponse"
+        "400":
+          description: Invalid request
+        "429":
+          description: Gemini rate limit exceeded
+        "502":
+          description: Gemini request failed
+        "503":
+          description: Gemini is not configured
+  /resume/generate:
+    post:
+      operationId: generateResume
+      tags: [resume]
+      summary: Generate an ATS-friendly resume
+      description: Creates a structured resume from user-provided career information
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeGenerateInput"
+      responses:
+        "200":
+          description: Generated resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeDocument"
+        "400":
+          description: Invalid resume information
+        "429":
+          description: Gemini rate limit exceeded
+        "502":
+          description: Gemini request failed
+        "503":
+          description: Gemini is not configured
 components:
   schemas:
     HealthStatus:
@@ -33,4 +91,119 @@ components:
           type: string
       required:
         - status
+    AiTestInput:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+      required:
+        - message
+    AiTestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        response:
+          type: string
+      required:
+        - success
+        - response
+    ResumeGenerateInput:
+      type: object
+      additionalProperties: false
+      properties:
+        fullName:
+          type: string
+          maxLength: 200
+        email:
+          type: string
+          maxLength: 320
+        phone:
+          type: string
+          maxLength: 80
+        location:
+          type: string
+          maxLength: 200
+        school:
+          type: string
+          maxLength: 300
+        degree:
+          type: string
+          maxLength: 300
+        graduation:
+          type: string
+          maxLength: 100
+        skills:
+          type: string
+          maxLength: 5000
+        projects:
+          type: string
+          maxLength: 10000
+        experience:
+          type: string
+          maxLength: 10000
+        certifications:
+          type: string
+          maxLength: 5000
+        achievements:
+          type: string
+          maxLength: 5000
+        targetRole:
+          type: string
+          maxLength: 200
+      required:
+        - fullName
+        - email
+        - phone
+        - location
+        - school
+        - degree
+        - graduation
+        - skills
+        - projects
+        - experience
+        - certifications
+        - achievements
+        - targetRole
+    ResumeDocument:
+      type: object
+      additionalProperties: false
+      properties:
+        summary:
+          type: string
+        education:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        projects:
+          type: array
+          items:
+            type: string
+        experience:
+          type: array
+          items:
+            type: string
+        certifications:
+          type: array
+          items:
+            type: string
+        achievements:
+          type: array
+          items:
+            type: string
+      required:
+        - summary
+        - education
+        - skills
+        - projects
+        - experience
+        - certifications
+        - achievements
 

@@ -5,22 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface AiTestInput {
-  /**
-     * @minLength 1
-     * @maxLength 4000
-     */
-  message: string;
-}
-
-export interface AiTestResponse {
-  success: true;
-  response: string;
-}
 
 export interface ResumeGenerateInput {
   /** @maxLength 200 */
@@ -50,14 +34,3 @@ export interface ResumeGenerateInput {
   /** @maxLength 200 */
   targetRole: string;
 }
-
-export interface ResumeDocument {
-  summary: string;
-  education: string[];
-  skills: string[];
-  projects: string[];
-  experience: string[];
-  certifications: string[];
-  achievements: string[];
-}
-

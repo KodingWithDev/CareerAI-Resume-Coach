@@ -1,0 +1,68 @@
+Continue developing the existing CareerAI application. Do NOT rebuild the app and do NOT remove any existing features.
+
+The Build Resume feature successfully generated a resume once, but subsequent attempts sometimes show:
+
+"Gemini is busy right now. Please wait a moment and try again."
+
+This means the Gemini API connection is working, but the application needs proper handling for temporary API overload/rate-limit errors.
+
+Fix the existing Gemini resume-generation flow.
+
+Tasks:
+
+1. Inspect the existing Gemini API request used by Build Resume.
+
+2. Identify the exact HTTP/API error returned when Gemini is "busy" or unavailable.
+   Log the status code and safe error information on the server.
+   NEVER log or expose GEMINI_API_KEY.
+
+3. Handle temporary Gemini errors such as:
+   - 429 rate limit
+   - temporary overload
+   - 503 service unavailable
+   - transient network/API failures
+
+4. Implement controlled exponential backoff:
+   - first retry after approximately 2 seconds
+   - second retry after approximately 4 seconds
+   - third retry after approximately 8 seconds
+   - maximum 3 automatic retries
+
+5. Do NOT retry indefinitely.
+
+6. Prevent accidental duplicate requests:
+   - Disable the "Build my resume" button while a request is processing.
+   - Prevent multiple simultaneous Gemini requests from repeated clicks.
+   - Re-enable the button after success or failure.
+
+7. If Gemini remains unavailable after the retries, show a user-friendly message such as:
+   "Gemini is temporarily unavailable. Please wait a few seconds and try again."
+
+Do not falsely tell the user that Gemini is busy unless the actual API response indicates a temporary availability/rate-limit problem.
+
+8. Keep the existing "Try again" button, but make sure clicking it starts only one new request.
+
+9. Do NOT change the existing Build Resume form or its design.
+
+10. Do NOT change Check Resume, Edit Resume, Interview, PDF generation, or any other existing CareerAI functionality.
+
+11. Keep the existing Gemini API key configuration:
+   GEMINI_API_KEY
+   stored securely in Replit Secrets/environment variables.
+
+12. Test the Build Resume flow multiple times and make sure:
+   - one request produces one resume
+   - repeated clicks do not create duplicate API requests
+   - temporary Gemini errors are retried automatically
+   - successful responses still display the resume normally.
+
+IMPORTANT:
+Do not solve this by simply increasing the number of API requests.
+The goal is to make the application resilient to temporary Gemini rate limits/overload while minimizing API usage.
+
+After completing the fix, tell me:
+- the exact Gemini error/status code you found
+- whether it was a rate limit, overload, or another issue
+- which files you changed
+- how duplicate requests are prevented
+- whether Build Resume works repeatedly.

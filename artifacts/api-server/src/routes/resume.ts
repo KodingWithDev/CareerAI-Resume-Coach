@@ -14,6 +14,16 @@ const router: IRouter = Router();
 
 const invalidResumeMessage =
   "Please provide your name and target role before generating a resume.";
+const temporaryGeminiStatusCodes = new Set([429, 500, 502, 503, 504]);
+const temporaryGeminiNetworkCodes = new Set([
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "ECONNREFUSED",
+  "ENETUNREACH",
+  "EAI_AGAIN",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
 
 function parseGeneratedResume(rawResponse: string) {
   const trimmed = rawResponse.trim();
@@ -112,9 +122,14 @@ router.post("/resume/generate", async (req, res): Promise<void> => {
       "Resume generation failed",
     );
 
-    if (upstreamError.status === 429 || upstreamError.status === 503) {
-      res.status(upstreamError.status).json({
-        error: "Gemini is temporarily unavailable. Please try again.",
+    if (
+      (typeof upstreamError.status === "number" &&
+        temporaryGeminiStatusCodes.has(upstreamError.status)) ||
+      (typeof upstreamError.code === "string" &&
+        temporaryGeminiNetworkCodes.has(upstreamError.code))
+    ) {
+      res.status(503).json({
+        error: "Gemini is temporarily unavailable. Please wait a few seconds and try again.",
       });
       return;
     }

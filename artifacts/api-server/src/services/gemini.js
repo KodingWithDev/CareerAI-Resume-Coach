@@ -2,7 +2,16 @@ import { GoogleGenAI } from "@google/genai";
 
 const MODEL = "gemini-3.8-flash";
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
-const MAX_RETRIES = 1;
+const RETRYABLE_NETWORK_CODES = new Set([
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "ECONNREFUSED",
+  "ENETUNREACH",
+  "EAI_AGAIN",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
+const MAX_RETRIES = 3;
 const RESUME_SYSTEM_INSTRUCTION = `You are an expert professional resume writer.
 
 Create an ATS-friendly resume using ONLY the information provided by the user.
@@ -73,6 +82,22 @@ function getStatusCode(error) {
   return typeof error.status === "number" ? error.status : undefined;
 }
 
+function getErrorCode(error) {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+
+  return typeof error.code === "string" ? error.code : undefined;
+}
+
+function isRetryableError(error) {
+  const status = getStatusCode(error);
+  return (
+    (status !== undefined && RETRYABLE_STATUS_CODES.has(status)) ||
+    RETRYABLE_NETWORK_CODES.has(getErrorCode(error))
+  );
+}
+
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -95,11 +120,10 @@ export async function analyzeWithGemini(prompt) {
       });
       break;
     } catch (error) {
-      const status = getStatusCode(error);
-      if (attempt >= MAX_RETRIES || !RETRYABLE_STATUS_CODES.has(status)) {
+      if (attempt >= MAX_RETRIES || !isRetryableError(error)) {
         throw error;
       }
-      await delay(500 * (attempt + 1));
+      await delay(2000 * 2 ** attempt);
     }
   }
 
@@ -137,11 +161,10 @@ export async function generateResumeWithGemini(profile) {
       });
       break;
     } catch (error) {
-      const status = getStatusCode(error);
-      if (attempt >= MAX_RETRIES || !RETRYABLE_STATUS_CODES.has(status)) {
+      if (attempt >= MAX_RETRIES || !isRetryableError(error)) {
         throw error;
       }
-      await delay(500 * (attempt + 1));
+      await delay(2000 * 2 ** attempt);
     }
   }
 

@@ -1,1 +1,2 @@
 - [Gemini model availability](gemini-model-availability.md) — verify direct-key model access live; catalogs and API-key availability can diverge.
+- [PDF parser startup quirk](pdf-parser-startup-quirk.md) — pdf-parse 1.1.1 evaluates a missing test fixture on import in this workspace.

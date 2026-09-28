@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { useDownloadResumePdf, useGenerateResume, type ResumeDocument } from '@workspace/api-client-react';
 import {
@@ -202,6 +202,7 @@ function Build({ profile, setProfile }: { profile: Profile; setProfile: React.Di
   const [saved, setSaved] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<ResumeDocument | null>(null);
   const [generationError, setGenerationError] = useState('');
+  const generatingRef = useRef(false);
   const generateResume = useGenerateResume();
   const current = steps[step];
   const fieldMeta: Record<string, { label: string; placeholder: string; type?: string; help?: string }> = {
@@ -222,14 +223,25 @@ function Build({ profile, setProfile }: { profile: Profile; setProfile: React.Di
   const isLong = ['skills', 'projects', 'experience', 'achievements'].some((x) => current.fields.includes(x));
   const update = (key: string, value: string) => setProfile((p) => ({ ...p, [key]: value }));
   const generate = async () => {
+    if (generatingRef.current) return;
+    generatingRef.current = true;
     setGenerationError('');
     try {
       const response = await generateResume.mutateAsync({ data: profile });
       setGeneratedResume(response);
       setSaved(true);
       window.setTimeout(() => document.getElementById('resume-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
-    } catch {
-      setGenerationError('We could not generate your resume right now. Please try again.');
+    } catch (error) {
+      const status = typeof error === 'object' && error !== null && 'status' in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+      setGenerationError(
+        status === 429 || status === 500 || status === 502 || status === 503 || status === 504
+          ? 'Gemini is temporarily unavailable. Please wait a few seconds and try again.'
+          : 'We could not generate your resume right now. Please try again.',
+      );
+    } finally {
+      generatingRef.current = false;
     }
   };
   const next = () => { if (step < steps.length - 1) setStep((s) => s + 1); else void generate(); };
@@ -252,7 +264,7 @@ function Build({ profile, setProfile }: { profile: Profile; setProfile: React.Di
         <div className={`grid gap-5 ${isLong ? '' : 'sm:grid-cols-2'}`}>{current.fields.map((key) => { const meta = fieldMeta[key]; return <label key={key} className={isLong ? 'block' : 'block'} data-testid={`field-${key}`}><span className="mb-2 block text-[12px] font-bold text-[hsl(var(--secondary))]">{meta.label}{['fullName', 'email', 'targetRole'].includes(key) && <span className="ml-1 text-[hsl(var(--accent))]">*</span>}</span>{isLong ? <textarea value={profile[key as keyof Profile]} onChange={(e) => update(key, e.target.value)} placeholder={meta.placeholder} rows={key === 'experience' || key === 'projects' ? 5 : 3} className="min-h-[92px] w-full resize-y rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.62)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid={`textarea-${key}`} /> : <input type={meta.type ?? 'text'} value={profile[key as keyof Profile]} onChange={(e) => update(key, e.target.value)} placeholder={meta.placeholder} className="h-12 w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.62)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid={`input-${key}`} />}{meta.help && <span className="mt-2 block text-[11px] leading-relaxed text-[hsl(var(--muted-foreground))]">{meta.help}</span>}</label>; })}</div>
          <div className="mt-9 flex items-center justify-between border-t border-[hsl(var(--border))] pt-6"><button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0 || generateResume.isPending} className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-[hsl(var(--muted-foreground))] transition-colors hover:bg-[hsl(var(--muted))] disabled:cursor-not-allowed disabled:opacity-35" data-testid="button-previous-step"><ChevronLeft size={16} /> Back</button><button onClick={next} disabled={generateResume.isPending || (step === steps.length - 1 && !canGenerate)} className="inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-next-step">{generateResume.isPending ? <><LoaderCircle size={16} className="animate-spin" /> Building your resume</> : <>{step === steps.length - 1 ? 'Build my resume' : 'Continue'} <ChevronRight size={16} /></>}</button></div>
          {step === steps.length - 1 && !canGenerate && <p className="mt-3 text-right text-[11px] text-[hsl(var(--muted-foreground))]">Add your name, email, and target role to generate your resume.</p>}
-         {generationError && <div className="mt-5 flex items-center gap-2 rounded-xl bg-[hsl(var(--destructive)/.1)] px-4 py-3 text-xs font-semibold text-[hsl(var(--destructive))]" data-testid="status-generation-error"><CircleAlert size={16} /> {generationError}</div>}
+          {generationError && <div className="mt-5 flex items-center gap-3 rounded-xl bg-[hsl(var(--destructive)/.1)] px-4 py-3 text-xs font-semibold text-[hsl(var(--destructive))]" role="alert" data-testid="status-generation-error"><CircleAlert size={16} className="shrink-0" /><span className="flex-1">{generationError}</span><button onClick={() => void generate()} disabled={generateResume.isPending} className="shrink-0 rounded-lg border border-[hsl(var(--destructive)/.25)] px-2.5 py-1.5 text-[11px] font-bold transition-colors hover:bg-[hsl(var(--destructive)/.1)] disabled:cursor-not-allowed disabled:opacity-50" data-testid="button-retry-generation">{generateResume.isPending ? 'Retrying…' : 'Try again'}</button></div>}
          {saved && !generationError && !generatedResume && <div className="mt-5 flex items-center gap-2 rounded-xl bg-[hsl(var(--primary)/.1)] px-4 py-3 text-xs font-semibold text-[hsl(var(--primary))]" data-testid="status-profile-saved"><CheckCircle2 size={16} /> Your story is saved locally. You can keep refining it anytime.</div>}
       </div>
     </div>

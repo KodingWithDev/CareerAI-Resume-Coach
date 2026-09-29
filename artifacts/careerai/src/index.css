@@ -125,6 +125,173 @@
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-9px) rotate(2deg); } }
 
+.prosim-room {
+  min-height: 590px;
+  background:
+    radial-gradient(circle at 50% 26%, rgba(51, 139, 190, .22), transparent 30%),
+    linear-gradient(150deg, #101d3e 0%, #0b1530 58%, #071127 100%);
+}
+
+.prosim-room::before,
+.prosim-room::after {
+  position: absolute;
+  content: '';
+  pointer-events: none;
+}
+
+.prosim-room::before {
+  inset: 0;
+  background-image: linear-gradient(rgba(168, 206, 226, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(168, 206, 226, .05) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .65), transparent 68%);
+}
+
+.prosim-room::after {
+  top: 56px;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(183, 219, 237, .2), transparent);
+}
+
+.prosim-desk {
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(31, 57, 96, .85), rgba(11, 22, 48, .95));
+  border-top: 1px solid rgba(161, 204, 228, .22);
+  box-shadow: 0 -10px 45px rgba(3, 10, 28, .3);
+}
+
+.prosim-cat-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 390px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding-top: 18px;
+}
+
+.prosim-cat {
+  position: relative;
+  width: min(100%, 340px);
+  height: 410px;
+  overflow: visible;
+}
+
+.prosim-cat-glow {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  width: 230px;
+  height: 230px;
+  border-radius: 999px;
+  background: rgba(76, 194, 225, .16);
+  filter: blur(40px);
+  transform: translateX(-50%);
+}
+
+.prosim-cat-body {
+  transform-origin: 50% 100%;
+  animation: prosim-breathe 4.8s ease-in-out infinite;
+}
+
+.prosim-cat-head {
+  transform-origin: 50% 72%;
+  transition: transform .6s cubic-bezier(.22, 1, .36, 1);
+}
+
+.prosim-cat-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: prosim-blink 5.5s ease-in-out infinite;
+}
+
+.prosim-cat-ear {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: prosim-ear 7s ease-in-out infinite;
+}
+
+.prosim-cat-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: -18px;
+  border: 1px solid rgba(220, 245, 250, .14);
+  border-radius: 999px;
+  background: rgba(4, 14, 35, .46);
+  padding: .45rem .7rem;
+  color: rgba(230, 247, 250, .58);
+  font-family: var(--app-font-mono);
+  font-size: .58rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.prosim-status-dot {
+  width: .38rem;
+  height: .38rem;
+  border-radius: 999px;
+  background: #66d5df;
+  box-shadow: 0 0 0 4px rgba(102, 213, 223, .12);
+}
+
+.prosim-cat-wrap[data-state='listening'] .prosim-cat-head {
+  transform: rotate(-2deg) translateY(-2px);
+}
+
+.prosim-cat-wrap[data-state='thinking'] .prosim-cat-head {
+  transform: rotate(4deg) translateY(-4px);
+}
+
+.prosim-cat-wrap[data-state='thinking'] .prosim-cat-glow {
+  animation: prosim-thinking-glow 1.4s ease-in-out infinite;
+}
+
+.prosim-cat-wrap[data-state='speaking'] .prosim-cat-eye {
+  animation-duration: 4.2s;
+}
+
+.prosim-speech-bubble {
+  box-shadow: 0 15px 35px rgba(2, 10, 28, .16);
+}
+
+@keyframes prosim-breathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-5px) scaleY(1.012); }
+}
+
+@keyframes prosim-blink {
+  0%, 44%, 48%, 100% { transform: scaleY(1); }
+  46% { transform: scaleY(.08); }
+}
+
+@keyframes prosim-ear {
+  0%, 70%, 76%, 100% { transform: rotate(0); }
+  73% { transform: rotate(-7deg); }
+}
+
+@keyframes prosim-thinking-glow {
+  0%, 100% { opacity: .7; transform: translateX(-50%) scale(.94); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+
+@media (max-width: 640px) {
+  .prosim-room {
+    min-height: 520px;
+  }
+
+  .prosim-cat-wrap {
+    min-height: 325px;
+  }
+
+  .prosim-cat {
+    width: min(100%, 275px);
+    height: 330px;
+  }
+}
+
 .resume-preview-heading {
   display: flex;
   align-items: flex-end;

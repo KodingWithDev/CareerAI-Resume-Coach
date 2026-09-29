@@ -79,3 +79,139 @@ export interface ResumePdfInput {
   resume: ResumeDocument;
 }
 
+export interface InterviewProfile {
+  /** @maxLength 200 */
+  fullName: string;
+  /** @maxLength 200 */
+  targetRole: string;
+  /** @maxLength 300 */
+  school: string;
+  /** @maxLength 300 */
+  degree: string;
+  /** @maxLength 5000 */
+  skills: string;
+  /** @maxLength 10000 */
+  projects: string;
+  /** @maxLength 10000 */
+  experience: string;
+  /** @maxLength 5000 */
+  certifications: string;
+  /** @maxLength 5000 */
+  achievements: string;
+}
+
+export interface InterviewHistoryTurn {
+  /** @maxLength 2000 */
+  question: string;
+  /** @maxLength 12000 */
+  answer: string;
+}
+
+export type InterviewTurnInputInterviewType = typeof InterviewTurnInputInterviewType[keyof typeof InterviewTurnInputInterviewType];
+
+
+export const InterviewTurnInputInterviewType = {
+  Behavioral: 'Behavioral',
+  Technical: 'Technical',
+  Mixed: 'Mixed',
+} as const;
+
+export interface InterviewTurnInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  targetRole: string;
+  interviewType: InterviewTurnInputInterviewType;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  questionNumber: number;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  maxQuestions: number;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  currentQuestion: string;
+  /**
+     * @minLength 1
+     * @maxLength 12000
+     */
+  answer: string;
+  /** @maxLength 8000 */
+  jobDescription: string;
+  profile: InterviewProfile;
+  /** @maxItems 5 */
+  history: InterviewHistoryTurn[];
+}
+
+export interface InterviewScores {
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  technical: number;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  communication: number;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  relevance: number;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  problemSolving: number;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  clarity: number;
+}
+
+export interface InterviewFeedback {
+  good: string;
+  change: string;
+  professionalAlternative: string;
+  encouragement: string;
+}
+
+export interface InterviewReportItem {
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  score: number;
+  explanation: string;
+  suggestion: string;
+}
+
+export interface InterviewReport {
+  technicalKnowledge: InterviewReportItem;
+  communication: InterviewReportItem;
+  answerRelevance: InterviewReportItem;
+  problemSolving: InterviewReportItem;
+  clarity: InterviewReportItem;
+}
+
+export interface InterviewTurnResponse {
+  nextQuestion: string;
+  questionType: string;
+  isComplete: boolean;
+  feedback: InterviewFeedback;
+  scores: InterviewScores;
+  strengths: string[];
+  topicsMentioned: string[];
+  learningPlan: string[];
+  report: InterviewReport;
+}
+

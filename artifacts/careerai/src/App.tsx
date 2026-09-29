@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react';
 import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
-import { useDownloadResumePdf, useGenerateResume, type ResumeDocument } from '@workspace/api-client-react';
+import { useDownloadResumePdf, useGenerateResume, useSubmitInterviewTurn, type InterviewTurnInput, type InterviewTurnResponse, type ResumeDocument } from '@workspace/api-client-react';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, BookOpen, BriefcaseBusiness,
   Check, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert,
   ClipboardCheck, FileText, FileDown, GraduationCap, Hammer, HeartHandshake,
   Home as HomeIcon, Lightbulb, ListChecks, LockKeyhole, Menu, MessageCircle,
   LoaderCircle, PencilLine, RefreshCw, Rocket, ScanSearch, ShieldCheck, Sparkles, Target,
-  UploadCloud, UserRound, WandSparkles, X,
+  UploadCloud, UserRound, WandSparkles, X, Brain, Bot, CheckCheck, CircleHelp,
+  Mic2, Send, SlidersHorizontal, Trophy, TrendingUp, Volume2,
 } from 'lucide-react';
 
 type Profile = {
@@ -55,7 +56,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             const active = href === '/' ? location === '/' : location.startsWith(href);
             return <Link key={href} href={href} onClick={() => setMobileOpen(false)} className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold transition-all ${active ? 'bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-foreground))] shadow-[inset_3px_0_0_hsl(var(--accent))]' : 'text-[hsl(var(--sidebar-foreground)/.66)] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-foreground))]'}`} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
               <Icon size={17} className={active ? 'text-[hsl(var(--accent))]' : 'opacity-70'} /> <span>{label}</span>
-              {label === 'Interview coach' && <span className="ml-auto rounded-full bg-[hsl(var(--sidebar-foreground)/.12)] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wide text-[hsl(var(--sidebar-foreground)/.56)]">soon</span>}
+              {label === 'Interview coach' && <span className="ml-auto rounded-full bg-[hsl(var(--accent)/.18)] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wide text-[hsl(var(--accent))]">ProSim</span>}
             </Link>;
           })}
         </nav>
@@ -302,15 +303,227 @@ function EditResume() {
   </div>;
 }
 
-function Interview() {
-  return <div><PageIntro eyebrow="Interview coach" title="Practice the part that happens after “tell me about yourself.”" description="A thoughtful practice room for the questions you can’t Google your way out of." /><div className="relative overflow-hidden rounded-3xl bg-[hsl(var(--secondary))] p-6 text-[hsl(var(--secondary-foreground))] sm:p-10"><div className="absolute right-8 top-8 h-32 w-32 rounded-full border-[18px] border-[hsl(var(--accent)/.15)] sm:h-48 sm:w-48 sm:border-[26px]" /><div className="relative max-w-xl"><span className="inline-flex items-center gap-2 rounded-full border border-[hsl(var(--accent)/.35)] bg-[hsl(var(--accent)/.1)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-[hsl(var(--accent))]"><MessageCircle size={12} /> Coming soon</span><h2 className="mt-7 font-display text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.03] tracking-[-.06em]">You don’t need<br />perfect answers.<br /><span className="text-[hsl(var(--accent))]">You need practice.</span></h2><p className="mt-6 max-w-md text-sm leading-relaxed text-[hsl(var(--secondary-foreground)/.62)]">We’re building an AI interview coach that asks better follow-ups, gives kind and specific feedback, and helps you find your own words.</p><button disabled className="mt-8 inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-[hsl(var(--secondary-foreground)/.13)] px-5 py-3 text-xs font-bold text-[hsl(var(--secondary-foreground)/.5)]" data-testid="button-start-interview"><LockKeyhole size={15} /> Practice room is being built</button></div></div><div className="mt-7 grid gap-4 sm:grid-cols-3">{[['Warm-up questions', 'Get past the first-answer freeze.'], ['Real follow-ups', 'Practice staying present when the question shifts.'], ['Your own voice', 'Feedback that helps, never scripts you.']].map(([t, d], i) => <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5" key={t} data-testid={`info-interview-${i}`}><span className="font-mono text-[10px] text-[hsl(var(--accent))]">0{i + 1}</span><h3 className="mt-3 text-sm font-bold text-[hsl(var(--secondary))]">{t}</h3><p className="mt-1 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">{d}</p></div>)}</div></div>;
+function CatAvatar({ state }: { state: 'idle' | 'listening' | 'thinking' | 'speaking' }) {
+  return <div className="prosim-cat-wrap" data-state={state}>
+    <div className="prosim-cat-glow" />
+    <svg className="prosim-cat" viewBox="0 0 420 500" role="img" aria-label="VibeCat, a blue cat in a formal blazer">
+      <defs>
+        <linearGradient id="catFur" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#6cd9ee" /><stop offset="1" stopColor="#2488c5" /></linearGradient>
+        <linearGradient id="catBlazer" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#1e355e" /><stop offset="1" stopColor="#101b39" /></linearGradient>
+        <filter id="catShadow"><feDropShadow dx="0" dy="12" stdDeviation="12" floodColor="#071229" floodOpacity=".45" /></filter>
+      </defs>
+      <ellipse cx="210" cy="472" rx="142" ry="18" fill="#071229" opacity=".52" />
+      <g className="prosim-cat-body" filter="url(#catShadow)">
+        <path d="M88 472c4-94 34-143 122-151 88 8 118 57 122 151Z" fill="url(#catBlazer)" />
+        <path d="M162 326h96l-15 64h-66Z" fill="#f8fafc" />
+        <path d="m210 351 21 45-21 22-21-22Z" fill="#e35a62" />
+        <path d="M189 382h42l-8 48h-26Z" fill="#f0c3c2" />
+        <path d="m92 471 66-117 43 31-35 87Zm236 0-66-117-43 31 35 87Z" fill="#192d53" />
+        <path d="m207 391 3 31 3-31 28 8-31 42-31-42Z" fill="#294678" />
+        <path d="M175 450h70" stroke="#3c5886" strokeWidth="3" opacity=".65" />
+        <g className="prosim-cat-head">
+          <path d="M103 152 119 44l79 74c10-3 20-4 31-4s21 1 31 4l79-74 16 108v89c0 76-56 112-126 112s-126-36-126-112Z" fill="url(#catFur)" />
+          <path d="M119 74 113 133l57-17Z" fill="#48b7db" />
+          <path d="m301 74 6 59-57-17Z" fill="#48b7db" />
+          <path d="M122 183c7-50 42-76 88-76s81 26 88 76c5 35-4 93-88 108-84-15-93-73-88-108Z" fill="#58c3e3" />
+          <ellipse cx="169" cy="186" rx="31" ry="35" fill="#eaf8fb" />
+          <ellipse cx="251" cy="186" rx="31" ry="35" fill="#eaf8fb" />
+          <ellipse className="prosim-cat-eye" cx="175" cy="191" rx="10" ry="18" fill="#10233f" />
+          <ellipse className="prosim-cat-eye" cx="245" cy="191" rx="10" ry="18" fill="#10233f" />
+          <path d="M191 235q19 15 38 0" fill="none" stroke="#10233f" strokeLinecap="round" strokeWidth="5" />
+          <path d="M210 214v19" stroke="#10233f" strokeLinecap="round" strokeWidth="4" />
+          <path d="M125 225 65 211M125 240 61 245M295 225l60-14M295 240l64 5" stroke="#d8f4f7" strokeLinecap="round" strokeWidth="3" opacity=".7" />
+          <path className="prosim-cat-ear" d="M117 104 123 66l45 42" fill="none" stroke="#d8f4f7" strokeLinecap="round" strokeWidth="5" />
+          <path className="prosim-cat-ear" d="m303 104-6-38-45 42" fill="none" stroke="#d8f4f7" strokeLinecap="round" strokeWidth="5" />
+        </g>
+      </g>
+    </svg>
+    <div className="prosim-cat-status"><span className="prosim-status-dot" /> {state === 'thinking' ? 'Thinking…' : state === 'listening' ? 'Listening' : state === 'speaking' ? 'Speaking' : 'Ready to practice'}</div>
+  </div>;
+}
+
+function ScoreBar({ label, value, tone = 'teal' }: { label: string; value: number; tone?: 'teal' | 'coral' | 'gold' }) {
+  const toneClass = tone === 'coral' ? 'bg-[hsl(var(--accent))]' : tone === 'gold' ? 'bg-[hsl(43_83%_56%)]' : 'bg-[hsl(var(--primary))]';
+  return <div>
+    <div className="mb-1.5 flex items-center justify-between text-[11px]"><span className="font-semibold text-[hsl(var(--secondary-foreground)/.68)]">{label}</span><span className="font-mono text-[10px] text-[hsl(var(--secondary-foreground)/.92)]">{value}</span></div>
+    <div className="h-1.5 overflow-hidden rounded-full bg-[hsl(var(--secondary-foreground)/.12)]"><div className={`h-full rounded-full transition-all duration-700 ${toneClass}`} style={{ width: `${value}%` }} /></div>
+  </div>;
+}
+
+function FeedbackCard({ feedback }: { feedback: InterviewTurnResponse['feedback'] }) {
+  return <section className="mt-5 rounded-2xl border border-[hsl(var(--primary)/.24)] bg-[hsl(var(--primary)/.06)] p-5" data-testid="prosim-feedback">
+    <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl bg-[hsl(var(--primary)/.15)] text-[hsl(var(--primary))]"><Bot size={16} /></span><div><p className="font-mono text-[9px] uppercase tracking-[.17em] text-[hsl(var(--primary))]">VibeCat feedback</p><h3 className="text-sm font-bold text-[hsl(var(--secondary))]">Here’s the useful stuff</h3></div></div>
+    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+      <div><p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.12em] text-[hsl(var(--primary))]"><CheckCheck size={13} /> What landed</p><p className="mt-1.5 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">{feedback.good}</p></div>
+      <div><p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.12em] text-[hsl(var(--accent-foreground))]"><TrendingUp size={13} /> Try changing</p><p className="mt-1.5 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">{feedback.change}</p></div>
+      <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.72)] p-3 sm:col-span-2"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-[hsl(var(--secondary))]">A more interview-ready version</p><p className="mt-1.5 text-xs leading-relaxed text-[hsl(var(--secondary))]">“{feedback.professionalAlternative}”</p></div>
+    </div>
+    <p className="mt-4 flex items-start gap-2 text-xs font-semibold leading-relaxed text-[hsl(var(--primary))]"><Sparkles size={14} className="mt-0.5 shrink-0" /> {feedback.encouragement}</p>
+  </section>;
+}
+
+function PerformanceReport({ report, learningPlan }: { report: InterviewTurnResponse['report']; learningPlan: string[] }) {
+  const items = [
+    ['Technical Knowledge', report.technicalKnowledge, Brain],
+    ['Communication', report.communication, MessageCircle],
+    ['Answer Relevance', report.answerRelevance, Target],
+    ['Problem Solving', report.problemSolving, SlidersHorizontal],
+    ['Clarity', report.clarity, CheckCheck],
+  ] as const;
+  return <section className="mt-6 rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-card)] sm:p-8" data-testid="prosim-performance-report">
+    <div className="flex flex-col justify-between gap-4 border-b border-[hsl(var(--border))] pb-6 sm:flex-row sm:items-end"><div><p className="font-mono text-[10px] uppercase tracking-[.17em] text-[hsl(var(--primary))]">Interview performance report</p><h2 className="mt-2 font-display text-2xl font-bold tracking-[-.045em] text-[hsl(var(--secondary))]">You made it through. Now make it useful.</h2></div><span className="inline-flex items-center gap-2 self-start rounded-full bg-[hsl(var(--accent)/.15)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--accent-foreground))]"><Trophy size={13} /> Practice complete</span></div>
+    <div className="mt-6 grid gap-3 md:grid-cols-2">{items.map(([label, item, Icon]) => <article key={label} className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--background)/.6)] p-4"><div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[hsl(var(--primary)/.1)] text-[hsl(var(--primary))]"><Icon size={17} /></span><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold text-[hsl(var(--secondary))]">{label}</h3><span className="font-display text-xl font-bold text-[hsl(var(--primary))]">{item.score}</span></div><p className="mt-2 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">{item.explanation}</p><p className="mt-2 text-[11px] font-semibold leading-relaxed text-[hsl(var(--secondary))]">Next move: {item.suggestion}</p></div></div></article>)}</div>
+    <div className="mt-6 rounded-2xl bg-[hsl(var(--secondary))] p-5 text-[hsl(var(--secondary-foreground))]"><p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.17em] text-[hsl(var(--accent))]"><BookOpen size={13} /> Personalized learning plan</p><ul className="mt-4 grid gap-3 sm:grid-cols-2">{learningPlan.map((item, i) => <li key={`${item}-${i}`} className="flex gap-2 text-xs leading-relaxed text-[hsl(var(--secondary-foreground)/.72)]"><span className="font-mono text-[10px] text-[hsl(var(--accent))]">0{i + 1}</span>{item}</li>)}</ul></div>
+  </section>;
+}
+
+function Interview({ profile }: { profile: Profile }) {
+  const maxQuestions = 5;
+  const submitTurn = useSubmitInterviewTurn();
+  const [started, setStarted] = useState(false);
+  const [complete, setComplete] = useState(false);
+  const [role, setRole] = useState(profile.targetRole || '');
+  const [interviewType, setInterviewType] = useState<InterviewTurnInput['interviewType']>('Mixed');
+  const [jobDescription, setJobDescription] = useState('');
+  const [questionNumber, setQuestionNumber] = useState(1);
+  const [question, setQuestion] = useState('');
+  const [questionType, setQuestionType] = useState('Warm-up');
+  const [answer, setAnswer] = useState('');
+  const [history, setHistory] = useState<InterviewTurnInput['history']>([]);
+  const [feedback, setFeedback] = useState<InterviewTurnResponse['feedback'] | null>(null);
+  const [scores, setScores] = useState<InterviewTurnResponse['scores']>({ technical: 0, communication: 0, relevance: 0, problemSolving: 0, clarity: 0 });
+  const [report, setReport] = useState<InterviewTurnResponse['report'] | null>(null);
+  const [learningPlan, setLearningPlan] = useState<string[]>([]);
+  const [error, setError] = useState('');
+  const displayRole = role.trim() || 'Software Developer';
+  const profileContext: InterviewTurnInput['profile'] = {
+    fullName: profile.fullName,
+    targetRole: displayRole,
+    school: profile.school,
+    degree: profile.degree,
+    skills: profile.skills,
+    projects: profile.projects,
+    experience: profile.experience,
+    certifications: profile.certifications,
+    achievements: profile.achievements,
+  };
+  const startInterview = () => {
+    setQuestion(interviewType === 'Technical'
+      ? `Walk me through a technical project you’ve worked on that is relevant to ${displayRole}. What was the hardest part?`
+      : interviewType === 'Behavioral'
+        ? 'Tell me about a time you had to figure something out without having all the answers.'
+        : `Tell me about a project or experience that makes you a strong fit for ${displayRole}.`);
+    setQuestionType('Warm-up');
+    setStarted(true);
+    setComplete(false);
+    setError('');
+  };
+  const endInterview = () => {
+    setStarted(false);
+    setComplete(false);
+    setQuestion('');
+    setAnswer('');
+    setFeedback(null);
+    setHistory([]);
+    setQuestionNumber(1);
+    setReport(null);
+    setLearningPlan([]);
+    setScores({ technical: 0, communication: 0, relevance: 0, problemSolving: 0, clarity: 0 });
+  };
+  const submit = async () => {
+    const trimmedAnswer = answer.trim();
+    if (!trimmedAnswer || submitTurn.isPending) return;
+    setError('');
+    try {
+      const response = await submitTurn.mutateAsync({
+        data: {
+          targetRole: displayRole,
+          interviewType,
+          questionNumber,
+          maxQuestions,
+          currentQuestion: question,
+          answer: trimmedAnswer,
+          jobDescription,
+          profile: profileContext,
+          history,
+        },
+      });
+      setFeedback(response.feedback);
+      setScores(response.scores);
+      setHistory((items) => [...items, { question, answer: trimmedAnswer }].slice(-maxQuestions));
+      setAnswer('');
+      if (response.isComplete) {
+        setComplete(true);
+        setReport(response.report);
+        setLearningPlan(response.learningPlan);
+      } else {
+        setQuestion(response.nextQuestion);
+        setQuestionType(response.questionType || 'Follow-up');
+        setQuestionNumber((number) => number + 1);
+      }
+    } catch (requestError) {
+      const status = typeof requestError === 'object' && requestError !== null && 'status' in requestError ? (requestError as { status?: unknown }).status : undefined;
+      setError(status === 503 ? 'Gemini is not connected yet. Add a GEMINI_API_KEY to the API server to enable live interview analysis.' : 'VibeCat could not analyze that answer. Please try again in a moment.');
+    }
+  };
+  const catState = submitTurn.isPending ? 'thinking' : answer.trim() ? 'listening' : 'idle';
+
+  if (!started) {
+    return <div>
+      <PageIntro eyebrow="ProSim · Professional Interview Simulator" title="Practice like it’s real. Keep sounding like you." description="VibeCat asks adaptive follow-ups, gives kind and specific feedback, and helps you turn your own words into stronger interview answers." />
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
+        <section className="relative overflow-hidden rounded-3xl bg-[hsl(var(--secondary))] p-6 text-[hsl(var(--secondary-foreground))] shadow-[var(--shadow-soft)] sm:p-9">
+          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border-[26px] border-[hsl(var(--accent)/.13)]" />
+          <div className="relative"><span className="inline-flex items-center gap-2 rounded-full border border-[hsl(var(--accent)/.35)] bg-[hsl(var(--accent)/.1)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-[hsl(var(--accent))]"><Bot size={13} /> Meet VibeCat</span><h2 className="mt-7 max-w-lg font-display text-[clamp(2rem,5vw,3.8rem)] font-bold leading-[1.03] tracking-[-.06em]">Your practice room,<br /><span className="text-[hsl(var(--accent))]">minus the judgment.</span></h2><p className="mt-5 max-w-md text-sm leading-relaxed text-[hsl(var(--secondary-foreground)/.64)]">Casual answer? Hinglish? Brain buffering? VibeCat gets the intent first, then helps you level up without deleting your personality.</p><div className="mt-8 grid gap-3 sm:grid-cols-3">{[['01', 'Adaptive', 'Follow-ups use your last answer'], ['02', 'Specific', 'Feedback you can actually use'], ['03', 'Respectful', 'Your voice stays yours']].map(([n, t, d]) => <div key={n} className="border-l border-[hsl(var(--secondary-foreground)/.18)] pl-3"><span className="font-mono text-[10px] text-[hsl(var(--accent))]">{n}</span><p className="mt-2 text-xs font-bold">{t}</p><p className="mt-1 text-[10px] leading-relaxed text-[hsl(var(--secondary-foreground)/.5)]">{d}</p></div>)}</div></div>
+        </section>
+        <section className="rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-card)] sm:p-7">
+          <div className="flex items-center gap-3 border-b border-[hsl(var(--border))] pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[hsl(var(--primary)/.11)] text-[hsl(var(--primary))]"><SlidersHorizontal size={18} /></span><div><p className="font-mono text-[10px] uppercase tracking-[.16em] text-[hsl(var(--primary))]">Set your room</p><h2 className="font-display text-lg font-bold text-[hsl(var(--secondary))]">A little context first</h2></div></div>
+          <label className="mt-5 block"><span className="mb-2 block text-[11px] font-bold uppercase tracking-[.1em] text-[hsl(var(--secondary))]">Target role</span><input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Frontend developer intern" className="h-11 w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.58)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid="input-prosim-role" /></label>
+          <label className="mt-4 block"><span className="mb-2 block text-[11px] font-bold uppercase tracking-[.1em] text-[hsl(var(--secondary))]">Interview type</span><select value={interviewType} onChange={(e) => setInterviewType(e.target.value as InterviewTurnInput['interviewType'])} className="h-11 w-full rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 text-sm text-[hsl(var(--foreground))] focus:border-[hsl(var(--primary))] focus:outline-none" data-testid="select-prosim-type"><option>Mixed</option><option>Behavioral</option><option>Technical</option></select></label>
+          <label className="mt-4 block"><span className="mb-2 block text-[11px] font-bold uppercase tracking-[.1em] text-[hsl(var(--secondary))]">Job description <span className="font-normal text-[hsl(var(--muted-foreground))]">(optional)</span></span><textarea value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} rows={4} placeholder="Paste the role description so follow-ups feel relevant..." className="w-full resize-y rounded-xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-3 text-sm leading-relaxed text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.58)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid="textarea-prosim-job-description" /></label>
+          <div className="mt-5 flex items-start gap-2 rounded-xl bg-[hsl(var(--muted)/.65)] p-3 text-[11px] leading-relaxed text-[hsl(var(--muted-foreground))]"><FileText size={14} className="mt-0.5 shrink-0 text-[hsl(var(--primary))]" /> {profile.projects || profile.experience ? 'Your CareerAI resume details will be used as interview context.' : 'Add your story in Build resume first for more personalized prompts.'}</div>
+          <button onClick={startInterview} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3.5 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5" data-testid="button-start-interview"><Mic2 size={16} /> Start ProSim</button>
+        </section>
+      </div>
+    </div>;
+  }
+
+  return <div>
+    <PageIntro eyebrow="ProSim · Live practice room" title={complete ? 'You did the reps. Let’s use them.' : 'Stay in the moment. VibeCat has you.'} description={complete ? 'Here’s the honest, useful version of how your interview came across.' : 'Answer naturally. The next question will react to what you actually say.'}>
+      <button onClick={endInterview} className="inline-flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] transition-colors hover:border-[hsl(var(--accent)/.6)]" data-testid="button-end-interview-top"><ArrowLeft size={14} /> Exit room</button>
+    </PageIntro>
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div>
+        <section className="prosim-room relative overflow-hidden rounded-3xl p-4 shadow-[var(--shadow-soft)] sm:p-7" data-testid="prosim-room">
+          <div className="absolute right-5 top-5 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[.14em] text-white/55"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] animate-pulse" /> Live room</div>
+          <div className="relative z-10 mx-auto max-w-[620px]">
+            <CatAvatar state={complete ? 'idle' : question ? (submitTurn.isPending ? 'thinking' : 'speaking') : catState} />
+            <div className="prosim-speech-bubble relative mx-auto -mt-2 max-w-xl rounded-2xl border border-white/10 bg-white/[.08] p-4 text-center text-sm leading-relaxed text-white/90 sm:p-5"><span className="mb-2 block font-mono text-[9px] uppercase tracking-[.18em] text-[hsl(var(--accent))]">AI interviewer · {questionType}</span>{complete ? 'Nice work. Let’s look at what you can take into your next answer.' : question}</div>
+            <div className="mt-4 flex items-center justify-center gap-2 text-[10px] font-semibold text-white/45"><Volume2 size={13} /> VibeCat is keeping the conversation adaptive</div>
+          </div>
+          <div className="prosim-desk absolute bottom-0 left-0 right-0 h-10" />
+        </section>
+        {!complete && <section className="mt-5 rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-card)] sm:p-7"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="font-mono text-[10px] uppercase tracking-[.16em] text-[hsl(var(--primary))]">Your answer</p><h2 className="mt-2 font-display text-xl font-bold tracking-[-.04em] text-[hsl(var(--secondary))]">Take your time. Real over perfect.</h2></div><span className="font-mono text-[10px] text-[hsl(var(--muted-foreground))]">{answer.length}/12000</span></div><textarea value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') void submit(); }} rows={7} placeholder="Type how you would actually answer… casual is okay." className="mt-5 min-h-[170px] w-full resize-y rounded-2xl border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-4 py-4 text-sm leading-relaxed text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground)/.58)] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/.12)]" data-testid="textarea-prosim-answer" /><div className="mt-4 flex flex-col-reverse gap-3 border-t border-[hsl(var(--border))] pt-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] text-[hsl(var(--muted-foreground))]">Tip: press <kbd className="rounded border border-[hsl(var(--border))] px-1.5 py-0.5 font-mono text-[10px]">⌘/Ctrl + Enter</kbd> to submit.</p><div className="flex gap-2"><button onClick={endInterview} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] px-4 py-3 text-xs font-bold text-[hsl(var(--secondary))] transition-colors hover:border-[hsl(var(--accent)/.55)]" data-testid="button-end-interview"><X size={15} /> End interview</button><button onClick={() => void submit()} disabled={!answer.trim() || submitTurn.isPending} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45" data-testid="button-submit-answer">{submitTurn.isPending ? <><LoaderCircle size={15} className="animate-spin" /> VibeCat is thinking</> : <><Send size={15} /> Submit answer</>}</button></div></div></section>}
+        {feedback && <FeedbackCard feedback={feedback} />}
+        {error && <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[hsl(var(--destructive)/.25)] bg-[hsl(var(--destructive)/.07)] px-4 py-3 text-xs leading-relaxed text-[hsl(var(--destructive))]" role="alert" data-testid="status-prosim-error"><CircleAlert size={16} className="mt-0.5 shrink-0" /><span className="flex-1">{error}</span><button onClick={() => void submit()} disabled={!answer.trim() || submitTurn.isPending} className="shrink-0 rounded-lg border border-current/30 px-2 py-1 text-[10px] font-bold">Retry</button></div>}
+        {complete && report && <><PerformanceReport report={report} learningPlan={learningPlan} /><button onClick={endInterview} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))]" data-testid="button-practice-again"><RefreshCw size={15} /> Practice again</button></>}
+      </div>
+      <aside className="h-fit rounded-3xl bg-[hsl(var(--secondary))] p-5 text-[hsl(var(--secondary-foreground))] shadow-[var(--shadow-soft)] sm:p-6">
+        <div className="flex items-start justify-between gap-3 border-b border-[hsl(var(--secondary-foreground)/.14)] pb-5"><div><p className="font-mono text-[9px] uppercase tracking-[.17em] text-[hsl(var(--accent))]">Interview info</p><h2 className="mt-2 font-display text-lg font-bold">{displayRole}</h2></div><span className="rounded-xl bg-[hsl(var(--accent)/.14)] px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-wider text-[hsl(var(--accent))]">{interviewType}</span></div>
+        <div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-[hsl(var(--secondary-foreground)/.07)] p-3"><p className="font-mono text-[9px] uppercase tracking-[.12em] text-white/45">Question</p><p className="mt-1 font-display text-xl font-bold">{complete ? maxQuestions : questionNumber} <span className="font-mono text-xs font-normal text-white/45">/ {maxQuestions}</span></p></div><div className="rounded-2xl bg-[hsl(var(--secondary-foreground)/.07)] p-3"><p className="font-mono text-[9px] uppercase tracking-[.12em] text-white/45">Mode</p><p className="mt-1 text-sm font-bold">{complete ? 'Report' : 'Adaptive'}</p></div></div>
+        <div className="mt-6"><div className="mb-4 flex items-center gap-2"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[hsl(var(--accent)/.15)] text-[hsl(var(--accent))]"><TrendingUp size={14} /></span><p className="font-mono text-[10px] uppercase tracking-[.15em] text-white/65">Current performance</p></div><div className="space-y-4"><ScoreBar label="Technical" value={scores.technical} /><ScoreBar label="Communication" value={scores.communication} tone="coral" /><ScoreBar label="Relevance" value={scores.relevance} tone="gold" /><ScoreBar label="Problem solving" value={scores.problemSolving} /><ScoreBar label="Clarity" value={scores.clarity} tone="coral" /></div></div>
+        {history.length > 0 && <div className="mt-6 border-t border-[hsl(var(--secondary-foreground)/.14)] pt-5"><p className="font-mono text-[9px] uppercase tracking-[.15em] text-white/45">Topics VibeCat heard</p><div className="mt-3 flex flex-wrap gap-1.5">{(feedback ? history.flatMap((item) => item.answer.split(/\s+/).filter((word) => word.length > 5).slice(0, 3)) : []).slice(0, 6).map((topic, i) => <span key={`${topic}-${i}`} className="rounded-full bg-white/[.08] px-2 py-1 text-[10px] text-white/65">{topic.replace(/[,.!?]/g, '')}</span>)}</div></div>}
+        <div className="mt-6 flex items-start gap-2 rounded-xl border border-[hsl(var(--secondary-foreground)/.12)] p-3 text-[10px] leading-relaxed text-white/50"><CircleHelp size={14} className="mt-0.5 shrink-0 text-[hsl(var(--accent))]" /> This is practice, not a hiring prediction. Use the feedback as a next step, not a verdict.</div>
+      </aside>
+    </div>
+  </div>;
 }
 
 function NotFound() { return <div className="mx-auto max-w-xl py-20 text-center"><p className="font-mono text-xs uppercase tracking-widest text-[hsl(var(--primary))]">404</p><h1 className="mt-4 font-display text-4xl font-bold">This page took a wrong turn.</h1><Link href="/" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))]" data-testid="link-back-home"><ArrowLeft size={15} /> Back to workspace</Link></div>; }
 
 function Router() {
   const [profile, setProfile] = useState<Profile>(emptyProfile);
-  return <Shell><Switch><Route path="/" component={Home} /><Route path="/build"><Build profile={profile} setProfile={setProfile} /></Route><Route path="/check" component={CheckResume} /><Route path="/edit" component={EditResume} /><Route path="/interview" component={Interview} /><Route component={NotFound} /></Switch></Shell>;
+  return <Shell><Switch><Route path="/" component={Home} /><Route path="/build"><Build profile={profile} setProfile={setProfile} /></Route><Route path="/check" component={CheckResume} /><Route path="/edit" component={EditResume} /><Route path="/interview"><Interview profile={profile} /></Route><Route component={NotFound} /></Switch></Shell>;
 }
 
 function App() { return <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><Router /></WouterRouter>; }

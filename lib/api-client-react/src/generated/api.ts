@@ -23,6 +23,8 @@ import type {
   AiTestInput,
   AiTestResponse,
   HealthStatus,
+  InterviewTurnInput,
+  InterviewTurnResponse,
   ResumeDocument,
   ResumeGenerateInput,
   ResumePdfInput
@@ -398,5 +400,94 @@ export const useDownloadResumePdf = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDownloadResumePdfMutationOptions(options));
+    }
+
+export const getSubmitInterviewTurnUrl = () => {
+
+
+
+
+  return `/api/interview/turn`
+}
+
+/**
+ * Uses the candidate context and previous answer to keep the simulation adaptive.
+ * @summary Analyze an interview answer and generate the next turn
+ */
+export const submitInterviewTurn = async (interviewTurnInput: InterviewTurnInput, options?: Parameters<typeof customFetch>[1]): Promise<InterviewTurnResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<InterviewTurnResponse>(getSubmitInterviewTurnUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(interviewTurnInput)
+  }
+);}
+
+
+
+
+
+export const getSubmitInterviewTurnMutationKey = () => ['submitInterviewTurn'] as const;
+
+export const getSubmitInterviewTurnMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitInterviewTurn>>, TError,SubmitInterviewTurnMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitInterviewTurn>>, TError,SubmitInterviewTurnMutationVariables, TContext> => {
+
+const mutationKey = getSubmitInterviewTurnMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitInterviewTurn>>, SubmitInterviewTurnMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitInterviewTurn(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitInterviewTurnMutationResult = NonNullable<Awaited<ReturnType<typeof submitInterviewTurn>>>
+    export type SubmitInterviewTurnMutationBody = BodyType<InterviewTurnInput>
+    export type SubmitInterviewTurnMutationError = ErrorType<void>
+    export type SubmitInterviewTurnMutationVariables = {data: BodyType<InterviewTurnInput>}
+
+    /**
+ * @summary Analyze an interview answer and generate the next turn
+ */
+export const useSubmitInterviewTurn = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitInterviewTurn>>, TError,SubmitInterviewTurnMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitInterviewTurn>>,
+        TError,
+        SubmitInterviewTurnMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitInterviewTurnMutationOptions(options));
     }
 

@@ -132,3 +132,152 @@ export const DownloadResumePdfBody = zod.object({
 export const DownloadResumePdfResponse = zod.unknown()
 
 
+/**
+ * Uses the candidate context and previous answer to keep the simulation adaptive.
+ * @summary Analyze an interview answer and generate the next turn
+ */
+export const submitInterviewTurnBodyTargetRoleMax = 200;
+
+export const submitInterviewTurnBodyQuestionNumberMax = 5;
+
+export const submitInterviewTurnBodyMaxQuestionsMax = 5;
+
+export const submitInterviewTurnBodyCurrentQuestionMax = 2000;
+
+export const submitInterviewTurnBodyAnswerMax = 12000;
+
+export const submitInterviewTurnBodyJobDescriptionMax = 8000;
+
+export const submitInterviewTurnBodyProfileFullNameMax = 200;
+
+export const submitInterviewTurnBodyProfileTargetRoleMax = 200;
+
+export const submitInterviewTurnBodyProfileSchoolMax = 300;
+
+export const submitInterviewTurnBodyProfileDegreeMax = 300;
+
+export const submitInterviewTurnBodyProfileSkillsMax = 5000;
+
+export const submitInterviewTurnBodyProfileProjectsMax = 10000;
+
+export const submitInterviewTurnBodyProfileExperienceMax = 10000;
+
+export const submitInterviewTurnBodyProfileCertificationsMax = 5000;
+
+export const submitInterviewTurnBodyProfileAchievementsMax = 5000;
+
+export const submitInterviewTurnBodyHistoryItemQuestionMax = 2000;
+
+export const submitInterviewTurnBodyHistoryItemAnswerMax = 12000;
+
+export const submitInterviewTurnBodyHistoryMax = 5;
+
+
+
+export const SubmitInterviewTurnBody = zod.object({
+  "targetRole": zod.string().min(1).max(submitInterviewTurnBodyTargetRoleMax),
+  "interviewType": zod.enum(['Behavioral', 'Technical', 'Mixed']),
+  "questionNumber": zod.number().int().min(1).max(submitInterviewTurnBodyQuestionNumberMax),
+  "maxQuestions": zod.number().int().min(1).max(submitInterviewTurnBodyMaxQuestionsMax),
+  "currentQuestion": zod.string().min(1).max(submitInterviewTurnBodyCurrentQuestionMax),
+  "answer": zod.string().min(1).max(submitInterviewTurnBodyAnswerMax),
+  "jobDescription": zod.string().max(submitInterviewTurnBodyJobDescriptionMax),
+  "profile": zod.object({
+  "fullName": zod.string().max(submitInterviewTurnBodyProfileFullNameMax),
+  "targetRole": zod.string().max(submitInterviewTurnBodyProfileTargetRoleMax),
+  "school": zod.string().max(submitInterviewTurnBodyProfileSchoolMax),
+  "degree": zod.string().max(submitInterviewTurnBodyProfileDegreeMax),
+  "skills": zod.string().max(submitInterviewTurnBodyProfileSkillsMax),
+  "projects": zod.string().max(submitInterviewTurnBodyProfileProjectsMax),
+  "experience": zod.string().max(submitInterviewTurnBodyProfileExperienceMax),
+  "certifications": zod.string().max(submitInterviewTurnBodyProfileCertificationsMax),
+  "achievements": zod.string().max(submitInterviewTurnBodyProfileAchievementsMax)
+}),
+  "history": zod.array(zod.object({
+  "question": zod.string().max(submitInterviewTurnBodyHistoryItemQuestionMax),
+  "answer": zod.string().max(submitInterviewTurnBodyHistoryItemAnswerMax)
+})).max(submitInterviewTurnBodyHistoryMax)
+})
+
+export const submitInterviewTurnResponseScoresTechnicalMin = 0;
+export const submitInterviewTurnResponseScoresTechnicalMax = 100;
+
+export const submitInterviewTurnResponseScoresCommunicationMin = 0;
+export const submitInterviewTurnResponseScoresCommunicationMax = 100;
+
+export const submitInterviewTurnResponseScoresRelevanceMin = 0;
+export const submitInterviewTurnResponseScoresRelevanceMax = 100;
+
+export const submitInterviewTurnResponseScoresProblemSolvingMin = 0;
+export const submitInterviewTurnResponseScoresProblemSolvingMax = 100;
+
+export const submitInterviewTurnResponseScoresClarityMin = 0;
+export const submitInterviewTurnResponseScoresClarityMax = 100;
+
+export const submitInterviewTurnResponseReportTechnicalKnowledgeScoreMin = 0;
+export const submitInterviewTurnResponseReportTechnicalKnowledgeScoreMax = 100;
+
+export const submitInterviewTurnResponseReportCommunicationScoreMin = 0;
+export const submitInterviewTurnResponseReportCommunicationScoreMax = 100;
+
+export const submitInterviewTurnResponseReportAnswerRelevanceScoreMin = 0;
+export const submitInterviewTurnResponseReportAnswerRelevanceScoreMax = 100;
+
+export const submitInterviewTurnResponseReportProblemSolvingScoreMin = 0;
+export const submitInterviewTurnResponseReportProblemSolvingScoreMax = 100;
+
+export const submitInterviewTurnResponseReportClarityScoreMin = 0;
+export const submitInterviewTurnResponseReportClarityScoreMax = 100;
+
+
+
+export const SubmitInterviewTurnResponse = zod.object({
+  "nextQuestion": zod.string(),
+  "questionType": zod.string(),
+  "isComplete": zod.boolean(),
+  "feedback": zod.object({
+  "good": zod.string(),
+  "change": zod.string(),
+  "professionalAlternative": zod.string(),
+  "encouragement": zod.string()
+}),
+  "scores": zod.object({
+  "technical": zod.number().int().min(submitInterviewTurnResponseScoresTechnicalMin).max(submitInterviewTurnResponseScoresTechnicalMax),
+  "communication": zod.number().int().min(submitInterviewTurnResponseScoresCommunicationMin).max(submitInterviewTurnResponseScoresCommunicationMax),
+  "relevance": zod.number().int().min(submitInterviewTurnResponseScoresRelevanceMin).max(submitInterviewTurnResponseScoresRelevanceMax),
+  "problemSolving": zod.number().int().min(submitInterviewTurnResponseScoresProblemSolvingMin).max(submitInterviewTurnResponseScoresProblemSolvingMax),
+  "clarity": zod.number().int().min(submitInterviewTurnResponseScoresClarityMin).max(submitInterviewTurnResponseScoresClarityMax)
+}),
+  "strengths": zod.array(zod.string()),
+  "topicsMentioned": zod.array(zod.string()),
+  "learningPlan": zod.array(zod.string()),
+  "report": zod.object({
+  "technicalKnowledge": zod.object({
+  "score": zod.number().int().min(submitInterviewTurnResponseReportTechnicalKnowledgeScoreMin).max(submitInterviewTurnResponseReportTechnicalKnowledgeScoreMax),
+  "explanation": zod.string(),
+  "suggestion": zod.string()
+}),
+  "communication": zod.object({
+  "score": zod.number().int().min(submitInterviewTurnResponseReportCommunicationScoreMin).max(submitInterviewTurnResponseReportCommunicationScoreMax),
+  "explanation": zod.string(),
+  "suggestion": zod.string()
+}),
+  "answerRelevance": zod.object({
+  "score": zod.number().int().min(submitInterviewTurnResponseReportAnswerRelevanceScoreMin).max(submitInterviewTurnResponseReportAnswerRelevanceScoreMax),
+  "explanation": zod.string(),
+  "suggestion": zod.string()
+}),
+  "problemSolving": zod.object({
+  "score": zod.number().int().min(submitInterviewTurnResponseReportProblemSolvingScoreMin).max(submitInterviewTurnResponseReportProblemSolvingScoreMax),
+  "explanation": zod.string(),
+  "suggestion": zod.string()
+}),
+  "clarity": zod.object({
+  "score": zod.number().int().min(submitInterviewTurnResponseReportClarityScoreMin).max(submitInterviewTurnResponseReportClarityScoreMax),
+  "explanation": zod.string(),
+  "suggestion": zod.string()
+})
+})
+})
+
+

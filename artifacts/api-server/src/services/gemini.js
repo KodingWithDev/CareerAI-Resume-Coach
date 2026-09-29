@@ -40,6 +40,60 @@ Return structured JSON containing exactly these keys:
 
 Every array item must be a concise string. Use an empty array when the user did not provide information for a section.`;
 
+const INTERVIEW_SYSTEM_INSTRUCTION = `You are VibeCat, a friendly AI interview practice coach for Gen-Z students.
+
+Your job is to help the candidate communicate professionally without erasing their personality.
+Understand casual language, slang, informal grammar, and Hinglish. Never shame a casual answer.
+First understand the intended meaning, then give feedback that is warm, specific, and practical.
+
+For every answer:
+1. Say what was good.
+2. Say what should change for an interview.
+3. Give a natural professional alternative that still sounds like the candidate.
+4. Encourage them to answer again.
+
+Be respectful and constructive. Do not predict whether a real company will hire the candidate.
+Use the resume, target role, job description, previous answers, and current answer as context.
+The next question must depend on the current answer:
+- follow up on projects, technologies, or situations the candidate mentioned;
+- revisit a weak technical concept at a suitable difficulty;
+- increase difficulty or move to a related topic after a strong answer;
+- do not invent candidate experience.
+
+Return only JSON with exactly these keys:
+{
+  "nextQuestion": "string",
+  "questionType": "string",
+  "isComplete": true,
+  "feedback": {
+    "good": "string",
+    "change": "string",
+    "professionalAlternative": "string",
+    "encouragement": "string"
+  },
+  "scores": {
+    "technical": 0,
+    "communication": 0,
+    "relevance": 0,
+    "problemSolving": 0,
+    "clarity": 0
+  },
+  "strengths": ["string"],
+  "topicsMentioned": ["string"],
+  "learningPlan": ["string"],
+  "report": {
+    "technicalKnowledge": { "score": 0, "explanation": "string", "suggestion": "string" },
+    "communication": { "score": 0, "explanation": "string", "suggestion": "string" },
+    "answerRelevance": { "score": 0, "explanation": "string", "suggestion": "string" },
+    "problemSolving": { "score": 0, "explanation": "string", "suggestion": "string" },
+    "clarity": { "score": 0, "explanation": "string", "suggestion": "string" }
+  }
+}
+
+Scores are integers from 0 to 100. If this is not the last question, report may still be a useful interim report.
+If this is the last question, set isComplete to true and make report and learningPlan reflect the whole interview so far.
+Keep nextQuestion empty when isComplete is true.`;
+
 /** @type {GoogleGenAI | undefined} */
 let client;
 /** @type {string | undefined} */
@@ -156,6 +210,46 @@ export async function generateResumeWithGemini(profile) {
         contents: prompt,
         config: {
           systemInstruction: RESUME_SYSTEM_INSTRUCTION,
+          responseMimeType: "application/json",
+        },
+      });
+      break;
+    } catch (error) {
+      if (attempt >= MAX_RETRIES || !isRetryableError(error)) {
+        throw error;
+      }
+      await delay(2000 * 2 ** attempt);
+    }
+  }
+
+  const response = result.text?.trim();
+  if (!response) {
+    throw new GeminiServiceError();
+  }
+
+  return response;
+}
+
+/**
+ * @param {Record<string, unknown>} input
+ * @returns {Promise<string>}
+ */
+export async function generateInterviewTurnWithGemini(input) {
+  const prompt = [
+    "Analyze the current interview turn and generate the next adaptive turn.",
+    "The candidate may use slang, casual phrasing, or Hinglish; interpret intent before evaluating.",
+    "",
+    JSON.stringify(input, null, 2),
+  ].join("\n");
+
+  let result;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      result = await getGeminiClient().models.generateContent({
+        model: MODEL,
+        contents: prompt,
+        config: {
+          systemInstruction: INTERVIEW_SYSTEM_INSTRUCTION,
           responseMimeType: "application/json",
         },
       });

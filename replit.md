@@ -1,10 +1,11 @@
-# [Project name]
+# CareerAI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+CareerAI helps students turn their experience into a stronger resume and practice interview answers with VibeCat, an adaptive AI interview coach.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/careerai run dev` — run the CareerAI web app
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -22,23 +23,32 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/careerai/src/App.tsx` — CareerAI routes and UI, including the ProSim interview room
+- `artifacts/careerai/src/index.css` — shared visual tokens and ProSim character/room animations
+- `artifacts/api-server/src/routes/interview.ts` — adaptive interview-turn endpoint
+- `artifacts/api-server/src/services/gemini.js` — Gemini prompts and retry handling
+- `lib/api-spec/openapi.yaml` — source of truth for API contracts; run codegen after changes
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- ProSim sends one answer at a time to Gemini; questions are generated after analysis instead of precomputed.
+- The candidate resume fields and optional job description are sent as context for every adaptive turn.
+- The original VibeCat character is an inline SVG with CSS motion so the room has no external avatar dependency.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Build an ATS-friendly resume from guided profile information.
+- Download generated resumes as PDFs.
+- Practice a five-question adaptive interview with VibeCat, live performance scores, answer feedback, and a personalized learning plan.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Interview feedback should understand casual Gen-Z language and Hinglish without shaming the candidate.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- ProSim requires `GEMINI_API_KEY` on the API server for live analysis; the UI reports a clear setup message when it is unavailable.
+- Re-run `pnpm --filter @workspace/api-spec run codegen` after editing `lib/api-spec/openapi.yaml`.
 
 ## Pointers
 

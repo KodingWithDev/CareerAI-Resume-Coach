@@ -14,6 +14,8 @@ tags:
     description: AI-powered operations
   - name: resume
     description: Resume generation operations
+  - name: interview
+    description: Adaptive interview simulation operations
 paths:
   /healthz:
     get:
@@ -106,6 +108,33 @@ paths:
           description: Invalid resume information
         "502":
           description: PDF generation failed
+  /interview/turn:
+    post:
+      operationId: submitInterviewTurn
+      tags: [interview]
+      summary: Analyze an interview answer and generate the next turn
+      description: Uses the candidate context and previous answer to keep the simulation adaptive.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InterviewTurnInput"
+      responses:
+        "200":
+          description: Interview feedback and next question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterviewTurnResponse"
+        "400":
+          description: Invalid interview turn
+        "429":
+          description: Gemini rate limit exceeded
+        "502":
+          description: Gemini request failed
+        "503":
+          description: Gemini is not configured
 components:
   schemas:
     HealthStatus:
@@ -264,4 +293,226 @@ components:
       required:
         - profile
         - resume
+    InterviewProfile:
+      type: object
+      additionalProperties: false
+      properties:
+        fullName:
+          type: string
+          maxLength: 200
+        targetRole:
+          type: string
+          maxLength: 200
+        school:
+          type: string
+          maxLength: 300
+        degree:
+          type: string
+          maxLength: 300
+        skills:
+          type: string
+          maxLength: 5000
+        projects:
+          type: string
+          maxLength: 10000
+        experience:
+          type: string
+          maxLength: 10000
+        certifications:
+          type: string
+          maxLength: 5000
+        achievements:
+          type: string
+          maxLength: 5000
+      required:
+        - fullName
+        - targetRole
+        - school
+        - degree
+        - skills
+        - projects
+        - experience
+        - certifications
+        - achievements
+    InterviewHistoryTurn:
+      type: object
+      additionalProperties: false
+      properties:
+        question:
+          type: string
+          maxLength: 2000
+        answer:
+          type: string
+          maxLength: 12000
+      required:
+        - question
+        - answer
+    InterviewTurnInput:
+      type: object
+      additionalProperties: false
+      properties:
+        targetRole:
+          type: string
+          minLength: 1
+          maxLength: 200
+        interviewType:
+          type: string
+          enum: [Behavioral, Technical, Mixed]
+        questionNumber:
+          type: integer
+          minimum: 1
+          maximum: 5
+        maxQuestions:
+          type: integer
+          minimum: 1
+          maximum: 5
+        currentQuestion:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 12000
+        jobDescription:
+          type: string
+          maxLength: 8000
+        profile:
+          $ref: "#/components/schemas/InterviewProfile"
+        history:
+          type: array
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/InterviewHistoryTurn"
+      required:
+        - targetRole
+        - interviewType
+        - questionNumber
+        - maxQuestions
+        - currentQuestion
+        - answer
+        - jobDescription
+        - profile
+        - history
+    InterviewScores:
+      type: object
+      additionalProperties: false
+      properties:
+        technical:
+          type: integer
+          minimum: 0
+          maximum: 100
+        communication:
+          type: integer
+          minimum: 0
+          maximum: 100
+        relevance:
+          type: integer
+          minimum: 0
+          maximum: 100
+        problemSolving:
+          type: integer
+          minimum: 0
+          maximum: 100
+        clarity:
+          type: integer
+          minimum: 0
+          maximum: 100
+      required:
+        - technical
+        - communication
+        - relevance
+        - problemSolving
+        - clarity
+    InterviewFeedback:
+      type: object
+      additionalProperties: false
+      properties:
+        good:
+          type: string
+        change:
+          type: string
+        professionalAlternative:
+          type: string
+        encouragement:
+          type: string
+      required:
+        - good
+        - change
+        - professionalAlternative
+        - encouragement
+    InterviewReportItem:
+      type: object
+      additionalProperties: false
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        explanation:
+          type: string
+        suggestion:
+          type: string
+      required:
+        - score
+        - explanation
+        - suggestion
+    InterviewReport:
+      type: object
+      additionalProperties: false
+      properties:
+        technicalKnowledge:
+          $ref: "#/components/schemas/InterviewReportItem"
+        communication:
+          $ref: "#/components/schemas/InterviewReportItem"
+        answerRelevance:
+          $ref: "#/components/schemas/InterviewReportItem"
+        problemSolving:
+          $ref: "#/components/schemas/InterviewReportItem"
+        clarity:
+          $ref: "#/components/schemas/InterviewReportItem"
+      required:
+        - technicalKnowledge
+        - communication
+        - answerRelevance
+        - problemSolving
+        - clarity
+    InterviewTurnResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        nextQuestion:
+          type: string
+        questionType:
+          type: string
+        isComplete:
+          type: boolean
+        feedback:
+          $ref: "#/components/schemas/InterviewFeedback"
+        scores:
+          $ref: "#/components/schemas/InterviewScores"
+        strengths:
+          type: array
+          items:
+            type: string
+        topicsMentioned:
+          type: array
+          items:
+            type: string
+        learningPlan:
+          type: array
+          items:
+            type: string
+        report:
+          $ref: "#/components/schemas/InterviewReport"
+      required:
+        - nextQuestion
+        - questionType
+        - isComplete
+        - feedback
+        - scores
+        - strengths
+        - topicsMentioned
+        - learningPlan
+        - report
 
